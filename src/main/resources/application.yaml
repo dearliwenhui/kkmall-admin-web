@@ -1,5 +1,15 @@
 spring:
   application:
     name: kkmall-admin-web
+
 server:
   port: 38080
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when-authorized
