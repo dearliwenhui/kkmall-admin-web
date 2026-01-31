@@ -1,0 +1,102 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: kkmall
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kkmall-admin-web
+  namespace: kkmall
+  labels:
+    app: kkmall-admin-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kkmall-admin-web
+  template:
+    metadata:
+      labels:
+        app: kkmall-admin-web
+    spec:
+      containers:
+      - name: kkmall-admin-web
+        image: ghcr.io/dearliwenhui/kkmall-admin-web:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 38080
+          name: http
+          protocol: TCP
+        env:
+        - name: JAVA_OPTS
+          value: "-Xms256m -Xmx512m"
+        - name: SPRING_PROFILES_ACTIVE
+          value: "prod"
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 38080
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /actuator/health
+            port: 38080
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+      imagePullSecrets:
+      - name: ghcr-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kkmall-admin-web
+  namespace: kkmall
+  labels:
+    app: kkmall-admin-web
+spec:
+  type: ClusterIP
+  ports:
+  - port: 80
+    targetPort: 38080
+    protocol: TCP
+    name: http
+  selector:
+    app: kkmall-admin-web
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: kkmall-admin-web
+  namespace: kkmall
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  rules:
+  - host: admin.ascn.eu.cc  # 修改为你的域名
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: kkmall-admin-web
+            port:
+              number: 80
+  tls:
+  - hosts:
+    - admin.ascn.eu.cc  # 修改为你的域名
+    secretName: kkmall-admin-web-tls

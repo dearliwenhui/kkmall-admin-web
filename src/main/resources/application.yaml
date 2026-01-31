@@ -1,0 +1,5 @@
+spring:
+  application:
+    name: kkmall-admin-web
+server:
+  port: 38080
