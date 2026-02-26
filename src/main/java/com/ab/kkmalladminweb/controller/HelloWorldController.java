@@ -25,7 +25,7 @@ public class HelloWorldController {
      */
     @GetMapping("/hello")
     public Result<String> hello() {
-        return Result.success("Hello World!你好世界");
+        return Result.success("Hello World!你好世界欢迎你来到世界上");
     }
 
     /**
