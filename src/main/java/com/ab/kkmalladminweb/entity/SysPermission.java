@@ -42,6 +42,11 @@ public class SysPermission {
     private String path;
 
     /**
+     * 描述
+     */
+    private String description;
+
+    /**
      * 删除标记：0-未删除，1-已删除
      */
     @TableLogic

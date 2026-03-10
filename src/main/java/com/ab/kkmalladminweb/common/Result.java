@@ -49,6 +49,16 @@ public class Result<T> {
     /**
      * 成功响应(自定义消息)
      */
+    public static <T> Result<T> success(String message) {
+        Result<T> result = new Result<>();
+        result.setCode(200);
+        result.setMessage(message);
+        return result;
+    }
+
+    /**
+     * 成功响应(自定义消息和数据)
+     */
     public static <T> Result<T> success(String message, T data) {
         Result<T> result = new Result<>();
         result.setCode(200);

@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS `sys_permission` (
   `permission_code` VARCHAR(100) NOT NULL,
   `resource_type` TINYINT DEFAULT NULL,
   `path` VARCHAR(200) DEFAULT NULL,
+  `description` VARCHAR(200) DEFAULT NULL,
   `deleted` TINYINT DEFAULT 0,
   `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP,
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -110,7 +111,18 @@ VALUES
   ('Product Add', 'product:add', 2, '/api/products'),
   ('Product Delete', 'product:delete', 2, '/api/products/*'),
   ('Product Edit', 'product:edit', 2, '/api/products/*'),
-  ('Order Deliver', 'order:deliver', 2, '/api/orders/*/deliver')
+  ('User Add', 'user:add', 2, '/api/users'),
+  ('User Edit', 'user:edit', 2, '/api/users/*'),
+  ('User Delete', 'user:delete', 2, '/api/users/*'),
+  ('Order Deliver', 'order:deliver', 2, '/api/orders/*/deliver'),
+  ('Role Manage', 'role:manage', 1, '/api/roles/**'),
+  ('Role Add', 'role:add', 2, '/api/roles'),
+  ('Role Edit', 'role:edit', 2, '/api/roles/*'),
+  ('Role Delete', 'role:delete', 2, '/api/roles/*'),
+  ('Permission Manage', 'permission:manage', 1, '/api/permissions/**'),
+  ('Permission Add', 'permission:add', 2, '/api/permissions'),
+  ('Permission Edit', 'permission:edit', 2, '/api/permissions/*'),
+  ('Permission Delete', 'permission:delete', 2, '/api/permissions/*')
 ON DUPLICATE KEY UPDATE `permission_code` = VALUES(`permission_code`);
 
 INSERT INTO `sys_user_role` (`user_id`, `role_id`)
