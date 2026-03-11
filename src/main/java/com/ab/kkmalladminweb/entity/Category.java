@@ -3,44 +3,31 @@ package com.ab.kkmalladminweb.entity;
 import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 /**
- * Product entity.
+ * Category entity.
  */
 @Data
-@TableName("mall_product")
-public class Product {
+@TableName("mall_category")
+public class Category {
 
     @TableId(value = "id", type = IdType.AUTO)
     private Long id;
 
-    private String productName;
+    private String name;
 
-    private String productCode;
+    private Long parentId;
 
-    private Long categoryId;
+    private Integer level;
 
-    private BigDecimal price;
+    private Integer sort;
 
-    private Integer stock;
-
-    private String description;
-
-    /**
-     * 1: on sale, 0: off sale.
-     */
-    private Integer status;
-
-    /**
-     * Comma-separated image URLs.
-     */
-    private String images;
+    private String icon;
 
     /**
      * Logical delete flag: NULL for active records, timestamp (milliseconds) for deleted records.
-     * This allows reusing product_code after deletion.
      */
     @TableLogic(value = "NULL", delval = "UNIX_TIMESTAMP(NOW()) * 1000")
     private Long deleted;
@@ -50,4 +37,10 @@ public class Product {
 
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private LocalDateTime updateTime;
+
+    /**
+     * Children categories (not a database field).
+     */
+    @TableField(exist = false)
+    private List<Category> children;
 }

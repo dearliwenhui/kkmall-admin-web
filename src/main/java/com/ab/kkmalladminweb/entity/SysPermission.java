@@ -47,10 +47,11 @@ public class SysPermission {
     private String description;
 
     /**
-     * 删除标记：0-未删除，1-已删除
+     * Logical delete flag: NULL for active records, timestamp (milliseconds) for deleted records.
+     * This allows reusing permission_code after deletion.
      */
-    @TableLogic
-    private Integer deleted;
+    @TableLogic(value = "NULL", delval = "UNIX_TIMESTAMP(NOW()) * 1000")
+    private Long deleted;
 
     /**
      * 创建时间
