@@ -45,13 +45,22 @@ public class MyBatisPlusConfig {
         return new MetaObjectHandler() {
             @Override
             public void insertFill(MetaObject metaObject) {
-                this.strictInsertFill(metaObject, "createTime", LocalDateTime.class, LocalDateTime.now());
-                this.strictInsertFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                // 使用 setFieldValByName 代替 strictInsertFill，更可靠
+                // 只在字段值为 null 时填充
+                if (metaObject.hasGetter("createTime") && metaObject.getValue("createTime") == null) {
+                    this.setFieldValByName("createTime", LocalDateTime.now(), metaObject);
+                }
+                if (metaObject.hasGetter("updateTime") && metaObject.getValue("updateTime") == null) {
+                    this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
+                }
             }
 
             @Override
             public void updateFill(MetaObject metaObject) {
-                this.strictUpdateFill(metaObject, "updateTime", LocalDateTime.class, LocalDateTime.now());
+                // 更新时总是设置 updateTime
+                if (metaObject.hasGetter("updateTime")) {
+                    this.setFieldValByName("updateTime", LocalDateTime.now(), metaObject);
+                }
             }
         };
     }
