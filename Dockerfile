@@ -16,9 +16,12 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# 下载 OpenTelemetry Java Agent
-ADD --chown=root:root https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases/download/v2.10.0/opentelemetry-javaagent.jar /app/opentelemetry-javaagent.jar
-RUN chmod 644 /app/opentelemetry-javaagent.jar
+# 下载 SkyWalking Java Agent
+ADD --chown=root:root https://archive.apache.org/dist/skywalking/java-agent/9.3.0/apache-skywalking-java-agent-9.3.0.tgz /tmp/skywalking-agent.tgz
+RUN tar -xzf /tmp/skywalking-agent.tgz -C /app && \
+    mv /app/skywalking-agent /app/skywalking && \
+    rm /tmp/skywalking-agent.tgz && \
+    chmod -R 755 /app/skywalking
 
 # 创建非 root 用户
 RUN addgroup -S spring && adduser -S spring -G spring
@@ -35,4 +38,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:38080/actuator/health || exit 1
 
 # 启动应用
-ENTRYPOINT ["java", "-javaagent:/app/opentelemetry-javaagent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/skywalking/agent/skywalking-agent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
