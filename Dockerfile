@@ -16,12 +16,16 @@ FROM eclipse-temurin:21-jre-alpine
 
 WORKDIR /app
 
-# 下载 SkyWalking Java Agent
-ADD --chown=root:root https://archive.apache.org/dist/skywalking/java-agent/9.3.0/apache-skywalking-java-agent-9.3.0.tgz /tmp/skywalking-agent.tgz
-RUN tar -xzf /tmp/skywalking-agent.tgz -C /app && \
+# 安装 wget 和 tar（Alpine 默认有 tar）
+RUN apk add --no-cache wget
+
+# 下载并解压 SkyWalking Java Agent
+RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.3.0/apache-skywalking-java-agent-9.3.0.tgz -O /tmp/skywalking-agent.tgz && \
+    tar -xzf /tmp/skywalking-agent.tgz -C /app && \
     mv /app/skywalking-agent /app/skywalking && \
     rm /tmp/skywalking-agent.tgz && \
-    chmod -R 755 /app/skywalking
+    chmod -R 755 /app/skywalking && \
+    ls -la /app/skywalking/agent/
 
 # 创建非 root 用户
 RUN addgroup -S spring && adduser -S spring -G spring
