@@ -19,14 +19,15 @@ WORKDIR /app
 # 安装 wget
 RUN apk add --no-cache wget
 
-# 下载并解压 SkyWalking Java Agent
-RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.3.0/apache-skywalking-java-agent-9.3.0.tgz -O /tmp/skywalking-agent.tgz && \
-    tar -xzf /tmp/skywalking-agent.tgz -C /tmp && \
-    ls -la /tmp/ && \
-    mv /tmp/skywalking-agent /app/skywalking && \
-    rm /tmp/skywalking-agent.tgz && \
+# 下载并解压 SkyWalking Java Agent（使用最新的 9.4.0 版本）
+RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.4.0/apache-skywalking-java-agent-9.4.0.tgz -O /tmp/skywalking.tgz && \
+    mkdir -p /app/skywalking && \
+    tar -xzf /tmp/skywalking.tgz -C /tmp && \
+    cp -r /tmp/skywalking-agent/* /app/skywalking/ && \
+    rm -rf /tmp/skywalking.tgz /tmp/skywalking-agent && \
     chmod -R 755 /app/skywalking && \
-    ls -la /app/skywalking/
+    ls -la /app/skywalking/ && \
+    test -f /app/skywalking/skywalking-agent.jar && echo "Agent JAR found" || echo "Agent JAR NOT found"
 
 # 创建非 root 用户
 RUN addgroup -S spring && adduser -S spring -G spring
@@ -43,4 +44,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:38080/actuator/health || exit 1
 
 # 启动应用
-ENTRYPOINT ["java", "-javaagent:/app/skywalking/agent/skywalking-agent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/skywalking/skywalking-agent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
