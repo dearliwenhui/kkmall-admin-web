@@ -25,12 +25,14 @@ RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.4.0/apache-s
     tar -xzf /tmp/skywalking.tgz -C /tmp && \
     cp -r /tmp/skywalking-agent/* /app/skywalking/ && \
     rm -rf /tmp/skywalking.tgz /tmp/skywalking-agent && \
+    mkdir -p /app/skywalking/logs && \
     chmod -R 755 /app/skywalking && \
     ls -la /app/skywalking/ && \
     test -f /app/skywalking/skywalking-agent.jar && echo "Agent JAR found" || echo "Agent JAR NOT found"
 
 # 创建非 root 用户
-RUN addgroup -S spring && adduser -S spring -G spring
+RUN addgroup -S spring && adduser -S spring -G spring && \
+    chown -R spring:spring /app
 USER spring:spring
 
 # 从构建阶段复制 jar 文件
