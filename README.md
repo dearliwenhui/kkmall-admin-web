@@ -1,4 +1,4 @@
-# kkmall-admin-web
+﻿# kkmall-admin-web
 
 Spring Boot 管理后台应用
 
@@ -9,7 +9,6 @@ Spring Boot 管理后台应用
 - Maven 3.9+
 
 ## 本地开发
-
 ```bash
 # 编译
 mvn clean package
@@ -33,14 +32,13 @@ docker run -p 38080:38080 kkmall-admin-web:latest
 
 ## 部署到 k3s
 
-详见 [k8s/README.md](k8s/README.md)
+详见 `gitops/apps/kkmall-admin-web/README.md`
 
 ## CI/CD
 
 项目使用 GitHub Actions 自动构建和推送 Docker 镜像到 GitHub Container Registry。
-
-每次推送到 master 分支时,会自动:
-1. 构建 Docker 镜像(支持 amd64 和 arm64 架构)
+每次推送到 master 分支时，会自动：
+1. 构建 Docker 镜像（支持 amd64 和 arm64 架构）
 2. 推送到 ghcr.io/dearliwenhui/kkmall-admin-web
 
 ## 端口
