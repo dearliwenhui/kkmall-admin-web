@@ -44,6 +44,8 @@ public class RefundResponse {
 
     private String rejectReason;
 
+    private List<RefundAuditLogResponse> auditLogs;
+
     private LocalDateTime refundTime;
 
     private LocalDateTime createTime;

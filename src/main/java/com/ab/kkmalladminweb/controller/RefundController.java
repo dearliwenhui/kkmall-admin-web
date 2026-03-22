@@ -5,6 +5,7 @@ import com.ab.kkmalladminweb.common.Result;
 import com.ab.kkmalladminweb.dto.RefundAuditRequest;
 import com.ab.kkmalladminweb.dto.RefundQueryRequest;
 import com.ab.kkmalladminweb.dto.RefundResponse;
+import com.ab.kkmalladminweb.dto.RefundStatisticsResponse;
 import com.ab.kkmalladminweb.service.RefundService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -35,6 +36,15 @@ public class RefundController {
     @PreAuthorize("hasAuthority('order:manage')")
     public Result<PageResult<RefundResponse>> list(@Valid RefundQueryRequest queryRequest) {
         return Result.success(refundService.list(queryRequest));
+    }
+
+    /**
+     * Get refund statistics.
+     */
+    @GetMapping("/statistics")
+    @PreAuthorize("hasAuthority('order:manage')")
+    public Result<RefundStatisticsResponse> statistics() {
+        return Result.success(refundService.statistics());
     }
 
     /**

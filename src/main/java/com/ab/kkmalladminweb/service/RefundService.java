@@ -4,6 +4,7 @@ import com.ab.kkmalladminweb.common.PageResult;
 import com.ab.kkmalladminweb.dto.RefundAuditRequest;
 import com.ab.kkmalladminweb.dto.RefundQueryRequest;
 import com.ab.kkmalladminweb.dto.RefundResponse;
+import com.ab.kkmalladminweb.dto.RefundStatisticsResponse;
 
 /**
  * Refund management service.
@@ -15,4 +16,6 @@ public interface RefundService {
     RefundResponse getById(Long id);
 
     void audit(Long id, RefundAuditRequest request);
+
+    RefundStatisticsResponse statistics();
 }
