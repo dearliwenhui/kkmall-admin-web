@@ -101,7 +101,13 @@ public class RefundServiceImpl implements RefundService {
         }
 
         if (Boolean.TRUE.equals(request.getApproved())) {
-            recordAuditLog(refund, ACTION_APPROVED, currentOperatorId(), currentOperatorName(), "Approved refund request");
+            recordAuditLog(
+                    refund,
+                    ACTION_APPROVED,
+                    currentOperatorId(),
+                    currentOperatorName(),
+                    buildAuditRemark(refund, ACTION_APPROVED, null)
+            );
             processRefund(refund);
         } else {
             String rejectReason = trimToNull(request.getRejectReason());
@@ -111,7 +117,13 @@ public class RefundServiceImpl implements RefundService {
             refund.setStatus(REFUND_STATUS_REJECTED);
             refund.setRejectReason(rejectReason);
             refundMapper.updateById(refund);
-            recordAuditLog(refund, ACTION_REJECTED, currentOperatorId(), currentOperatorName(), rejectReason);
+            recordAuditLog(
+                    refund,
+                    ACTION_REJECTED,
+                    currentOperatorId(),
+                    currentOperatorName(),
+                    buildAuditRemark(refund, ACTION_REJECTED, rejectReason)
+            );
         }
     }
 
@@ -151,7 +163,13 @@ public class RefundServiceImpl implements RefundService {
         refund.setRejectReason(null);
         refund.setRefundTime(LocalDateTime.now());
         refundMapper.updateById(refund);
-        recordAuditLog(refund, ACTION_REFUNDED, currentOperatorId(), currentOperatorName(), "Refund completed");
+        recordAuditLog(
+                refund,
+                ACTION_REFUNDED,
+                currentOperatorId(),
+                currentOperatorName(),
+                buildAuditRemark(refund, ACTION_REFUNDED, null)
+        );
 
         List<OrderItem> items = orderItemMapper.selectList(
                 new LambdaQueryWrapper<OrderItem>()
@@ -288,8 +306,10 @@ public class RefundServiceImpl implements RefundService {
         response.setActionCode(log.getActionCode());
         response.setActionText(actionText(log.getActionCode()));
         response.setOperatorType(log.getOperatorType());
+        response.setOperatorTypeText(operatorTypeText(log.getOperatorType()));
         response.setOperatorId(log.getOperatorId());
         response.setOperatorName(log.getOperatorName());
+        response.setOperatorDisplayName(buildOperatorDisplayName(log));
         response.setRemark(log.getRemark());
         response.setCreateTime(log.getCreateTime());
         return response;
@@ -315,7 +335,7 @@ public class RefundServiceImpl implements RefundService {
         log.setOperatorType("USER");
         log.setOperatorId(refund.getUserId());
         log.setOperatorName(user == null ? null : (StringUtils.hasText(user.getNickname()) ? user.getNickname() : user.getUsername()));
-        log.setRemark(refund.getReason());
+        log.setRemark(buildAuditRemark(refund, ACTION_SUBMITTED, refund.getReason()));
         log.setCreateTime(refund.getCreateTime());
         refundAuditLogMapper.insert(log);
     }
@@ -362,6 +382,51 @@ public class RefundServiceImpl implements RefundService {
             case ACTION_REJECTED -> "Rejected";
             case ACTION_REFUNDED -> "Refunded";
             default -> actionCode;
+        };
+    }
+
+    private String operatorTypeText(String operatorType) {
+        if (!StringUtils.hasText(operatorType)) {
+            return "Unknown";
+        }
+        return switch (operatorType) {
+            case "USER" -> "Mall user";
+            case "ADMIN" -> "Admin console";
+            case "SYSTEM" -> "System";
+            default -> operatorType;
+        };
+    }
+
+    private String buildOperatorDisplayName(RefundAuditLog log) {
+        String operatorName = trimToNull(log.getOperatorName());
+        String operatorTypeText = operatorTypeText(log.getOperatorType());
+        if (!StringUtils.hasText(operatorName)) {
+            return operatorTypeText;
+        }
+        return operatorName + " (" + operatorTypeText + ")";
+    }
+
+    private String buildAuditRemark(Refund refund, String actionCode, String extraRemark) {
+        String orderNo = trimToNull(refund.getOrderNo());
+        String amount = refund.getRefundAmount() == null ? "0.00" : refund.getRefundAmount().toPlainString();
+        return switch (actionCode) {
+            case ACTION_SUBMITTED -> "User submitted refund for order "
+                    + (StringUtils.hasText(orderNo) ? orderNo : "-")
+                    + ", amount "
+                    + amount
+                    + (StringUtils.hasText(extraRemark) ? ", reason: " + extraRemark : "");
+            case ACTION_APPROVED -> "Admin approved refund for order "
+                    + (StringUtils.hasText(orderNo) ? orderNo : "-")
+                    + ", amount "
+                    + amount;
+            case ACTION_REJECTED -> "Admin rejected refund for order "
+                    + (StringUtils.hasText(orderNo) ? orderNo : "-")
+                    + (StringUtils.hasText(extraRemark) ? ", reason: " + extraRemark : "");
+            case ACTION_REFUNDED -> "Refund completed for order "
+                    + (StringUtils.hasText(orderNo) ? orderNo : "-")
+                    + ", amount "
+                    + amount;
+            default -> extraRemark;
         };
     }
 

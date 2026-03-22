@@ -27,7 +27,11 @@ INSERT INTO `sys_permission` (`id`, `permission_name`, `permission_code`, `resou
 (15, 'Permission Manage', 'permission:manage', 1, '/api/permissions/**', '权限管理权限'),
 (16, 'Permission Add', 'permission:add', 2, '/api/permissions', '添加权限'),
 (17, 'Permission Edit', 'permission:edit', 2, '/api/permissions/*', '编辑权限'),
-(18, 'Permission Delete', 'permission:delete', 2, '/api/permissions/*', '删除权限');
+(18, 'Permission Delete', 'permission:delete', 2, '/api/permissions/*', '删除权限'),
+(19, 'Coupon Manage', 'coupon:manage', 1, '/api/coupons/**', '优惠券管理权限'),
+(20, 'Coupon Add', 'coupon:add', 2, '/api/coupons', '添加优惠券'),
+(21, 'Coupon Edit', 'coupon:edit', 2, '/api/coupons/*', '编辑优惠券'),
+(22, 'Coupon Delete', 'coupon:delete', 2, '/api/coupons/*', '删除优惠券');
 
 -- 4. 为管理员角色分配所有权限
 INSERT INTO `sys_role_permission` (`role_id`, `permission_id`)

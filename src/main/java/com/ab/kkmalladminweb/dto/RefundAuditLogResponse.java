@@ -18,9 +18,13 @@ public class RefundAuditLogResponse {
 
     private String operatorType;
 
+    private String operatorTypeText;
+
     private Long operatorId;
 
     private String operatorName;
+
+    private String operatorDisplayName;
 
     private String remark;
 
