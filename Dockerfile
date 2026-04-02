@@ -1,25 +1,26 @@
-# 多阶段构建 - 构建阶段
 FROM maven:3.9-eclipse-temurin-21-alpine AS builder
 
 WORKDIR /app
 
-# 复制 pom.xml 并下载依赖(利用 Docker 缓存)
 COPY pom.xml .
 RUN mvn dependency:go-offline -B
 
-# 复制源代码并构建
 COPY src ./src
 RUN mvn clean package -DskipTests -B
 
-# 运行阶段 - 使用更小的基础镜像
-FROM eclipse-temurin:21-jre-alpine
+FROM eclipse-temurin:21-jdk-alpine
+ARG ARTHAS_VERSION=4.1.8
 
 WORKDIR /app
 
-# 安装 wget
-RUN apk add --no-cache wget
+RUN apk add --no-cache wget curl bash unzip
 
-# 下载并解压 SkyWalking Java Agent（使用最新的 9.4.0 版本）
+RUN wget -O /tmp/arthas-bin.zip \
+    https://github.com/alibaba/arthas/releases/download/arthas-all-${ARTHAS_VERSION}/arthas-bin.zip \
+    && mkdir -p /opt/arthas \
+    && unzip /tmp/arthas-bin.zip -d /opt/arthas \
+    && rm -f /tmp/arthas-bin.zip
+
 RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.4.0/apache-skywalking-java-agent-9.4.0.tgz -O /tmp/skywalking.tgz && \
     mkdir -p /app/skywalking && \
     tar -xzf /tmp/skywalking.tgz -C /tmp && \
@@ -30,20 +31,15 @@ RUN wget -q https://archive.apache.org/dist/skywalking/java-agent/9.4.0/apache-s
     ls -la /app/skywalking/ && \
     test -f /app/skywalking/skywalking-agent.jar && echo "Agent JAR found" || echo "Agent JAR NOT found"
 
-# 创建非 root 用户
 RUN addgroup -S spring && adduser -S spring -G spring && \
-    chown -R spring:spring /app
+    chown -R spring:spring /app /opt/arthas
 USER spring:spring
 
-# 从构建阶段复制 jar 文件
-COPY --from=builder /app/target/*.jar app.jar
+COPY --from=builder /app/target/*.jar /app/app.jar
 
-# 暴露端口
 EXPOSE 38080
 
-# 健康检查
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:38080/actuator/health || exit 1
 
-# 启动应用
-ENTRYPOINT ["java", "-javaagent:/app/skywalking/skywalking-agent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-javaagent:/app/skywalking/skywalking-agent.jar", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/app.jar"]
