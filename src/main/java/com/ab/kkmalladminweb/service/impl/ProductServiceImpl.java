@@ -74,7 +74,10 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse update(Long id, ProductSaveRequest request) {
         Product product = requireProduct(id);
         applyRequest(product, request);
-        productMapper.updateById(product);
+        int affected = productMapper.updateById(product);
+        if (affected == 0) {
+            throw new RuntimeException("数据已变化，请刷新后重试: " + id);
+        }
         return getById(id);
     }
 
@@ -104,7 +107,10 @@ public class ProductServiceImpl implements ProductService {
         }
         Product product = requireProduct(id);
         product.setStatus(status);
-        productMapper.updateById(product);
+        int affected = productMapper.updateById(product);
+        if (affected == 0) {
+            throw new RuntimeException("数据已变化，请刷新后重试: " + id);
+        }
     }
 
     @Override
@@ -115,7 +121,10 @@ public class ProductServiceImpl implements ProductService {
         }
         Product product = requireProduct(id);
         product.setStock(stock);
-        productMapper.updateById(product);
+        int affected = productMapper.updateById(product);
+        if (affected == 0) {
+            throw new RuntimeException("数据已变化，请刷新后重试: " + id);
+        }
     }
 
     private Product requireProduct(Long id) {

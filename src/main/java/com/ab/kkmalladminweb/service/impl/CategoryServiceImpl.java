@@ -6,6 +6,7 @@ import com.ab.kkmalladminweb.dto.CategoryResponse;
 import com.ab.kkmalladminweb.dto.CategorySaveRequest;
 import com.ab.kkmalladminweb.dto.CategoryTreeNode;
 import com.ab.kkmalladminweb.entity.Category;
+import com.ab.kkmalladminweb.exception.BusinessException;
 import com.ab.kkmalladminweb.mapper.CategoryMapper;
 import com.ab.kkmalladminweb.service.CategoryService;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -104,7 +105,8 @@ public class CategoryServiceImpl implements CategoryService {
         validateParentAndLevel(id, request.getParentId(), request.getLevel());
 
         applyRequest(category, request);
-        categoryMapper.updateById(category);
+        int affected = categoryMapper.updateById(category);
+        ensureUpdated(affected, "数据已变化，请刷新后重试");
         return getById(id);
     }
 
@@ -152,7 +154,8 @@ public class CategoryServiceImpl implements CategoryService {
         }
         Category category = requireCategory(id);
         category.setSort(sort);
-        categoryMapper.updateById(category);
+        int affected = categoryMapper.updateById(category);
+        ensureUpdated(affected, "数据已变化，请刷新后重试");
     }
 
     private Category requireCategory(Long id) {
@@ -285,5 +288,12 @@ public class CategoryServiceImpl implements CategoryService {
         }
 
         return isDescendant(ancestorId, descendant.getParentId());
+    }
+
+    private void ensureUpdated(int affected, String message) {
+        if (affected > 0) {
+            return;
+        }
+        throw new BusinessException(message);
     }
 }

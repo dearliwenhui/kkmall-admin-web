@@ -38,6 +38,9 @@ public class Product {
      */
     private String images;
 
+    @Version
+    private Long version;
+
     /**
      * Logical delete flag: NULL for active records, timestamp (milliseconds) for deleted records.
      * This allows reusing product_code after deletion.

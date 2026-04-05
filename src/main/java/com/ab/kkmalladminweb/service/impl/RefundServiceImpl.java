@@ -116,7 +116,8 @@ public class RefundServiceImpl implements RefundService {
             }
             refund.setStatus(REFUND_STATUS_REJECTED);
             refund.setRejectReason(rejectReason);
-            refundMapper.updateById(refund);
+            int affected = refundMapper.updateById(refund);
+            ensureUpdated(affected, "数据已变化，请刷新后重试");
             recordAuditLog(
                     refund,
                     ACTION_REJECTED,
@@ -162,7 +163,8 @@ public class RefundServiceImpl implements RefundService {
         refund.setStatus(REFUND_STATUS_SUCCESS);
         refund.setRejectReason(null);
         refund.setRefundTime(LocalDateTime.now());
-        refundMapper.updateById(refund);
+        int refundAffected = refundMapper.updateById(refund);
+        ensureUpdated(refundAffected, "数据已变化，请刷新后重试");
         recordAuditLog(
                 refund,
                 ACTION_REFUNDED,
@@ -186,13 +188,15 @@ public class RefundServiceImpl implements RefundService {
             }
             int stock = product.getStock() == null ? 0 : product.getStock();
             product.setStock(stock + item.getQuantity());
-            productMapper.updateById(product);
+            int affected = productMapper.updateById(product);
+            ensureUpdated(affected, "商品库存已变更，请刷新后重试");
         }
 
         Order order = refund.getOrderId() == null ? null : orderMapper.selectById(refund.getOrderId());
         if (order != null) {
             order.setStatus(ORDER_STATUS_CANCELLED);
-            orderMapper.updateById(order);
+            int affected = orderMapper.updateById(order);
+            ensureUpdated(affected, "订单状态已变化，请刷新后重试");
         }
     }
 
@@ -476,5 +480,12 @@ public class RefundServiceImpl implements RefundService {
                 .map(Refund::getRefundAmount)
                 .filter(amount -> amount != null)
                 .reduce(java.math.BigDecimal.ZERO, java.math.BigDecimal::add);
+    }
+
+    private void ensureUpdated(int affected, String message) {
+        if (affected > 0) {
+            return;
+        }
+        throw new BusinessException(message);
     }
 }

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableLogic;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.baomidou.mybatisplus.annotation.Version;
 import lombok.Data;
 
 import java.time.LocalDate;
@@ -40,6 +41,9 @@ public class MallUser {
     private Integer status;
 
     private Integer points;
+
+    @Version
+    private Long version;
 
     @TableLogic(value = "NULL", delval = "UNIX_TIMESTAMP(NOW()) * 1000")
     private Long deleted;

@@ -117,7 +117,8 @@ public class OrderServiceImpl implements OrderService {
         order.setLogisticsCompany(request.getExpressCompany().trim());
         order.setTrackingNumber(request.getExpressNo().trim());
         order.setShipTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        int affected = orderMapper.updateById(order);
+        ensureUpdated(affected, "订单状态已变化，请刷新后重试");
     }
 
     @Override
@@ -140,7 +141,8 @@ public class OrderServiceImpl implements OrderService {
                     : "[admin-cancel] " + reason);
         }
         order.setStatus(STATUS_CANCELLED);
-        orderMapper.updateById(order);
+        int affected = orderMapper.updateById(order);
+        ensureUpdated(affected, "订单状态已变化，请刷新后重试");
     }
 
     @Override
@@ -153,7 +155,8 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(STATUS_COMPLETED);
         order.setConfirmTime(LocalDateTime.now());
-        orderMapper.updateById(order);
+        int affected = orderMapper.updateById(order);
+        ensureUpdated(affected, "订单状态已变化，请刷新后重试");
     }
 
     @Override
@@ -369,7 +372,8 @@ public class OrderServiceImpl implements OrderService {
             }
             int stock = product.getStock() == null ? 0 : product.getStock();
             product.setStock(stock + item.getQuantity());
-            productMapper.updateById(product);
+            int affected = productMapper.updateById(product);
+            ensureUpdated(affected, "商品库存已变更，请刷新后重试");
         }
     }
 
@@ -484,5 +488,12 @@ public class OrderServiceImpl implements OrderService {
             return "\"\"";
         }
         return "\"" + value.replace("\"", "\"\"").replace("\r", " ").replace("\n", " ") + "\"";
+    }
+
+    private void ensureUpdated(int affected, String message) {
+        if (affected > 0) {
+            return;
+        }
+        throw new BusinessException(message);
     }
 }

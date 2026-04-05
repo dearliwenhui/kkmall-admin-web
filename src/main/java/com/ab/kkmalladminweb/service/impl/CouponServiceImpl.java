@@ -77,7 +77,8 @@ public class CouponServiceImpl implements CouponService {
     public CouponResponse update(Long id, CouponSaveRequest request) {
         Coupon coupon = requireCoupon(id);
         applyRequest(coupon, request, coupon);
-        couponMapper.updateById(coupon);
+        int affected = couponMapper.updateById(coupon);
+        ensureUpdated(affected, "数据已变化，请刷新后重试");
         return getById(id);
     }
 
@@ -111,7 +112,8 @@ public class CouponServiceImpl implements CouponService {
         }
         Coupon coupon = requireCoupon(id);
         coupon.setStatus(status);
-        couponMapper.updateById(coupon);
+        int affected = couponMapper.updateById(coupon);
+        ensureUpdated(affected, "数据已变化，请刷新后重试");
     }
 
     private Coupon requireCoupon(Long id) {
@@ -267,5 +269,12 @@ public class CouponServiceImpl implements CouponService {
         } catch (DateTimeParseException ex) {
             throw new BusinessException("Unsupported datetime format for " + fieldName + ": " + value);
         }
+    }
+
+    private void ensureUpdated(int affected, String message) {
+        if (affected > 0) {
+            return;
+        }
+        throw new BusinessException(message);
     }
 }

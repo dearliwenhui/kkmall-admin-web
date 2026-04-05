@@ -26,6 +26,9 @@ public class Category {
 
     private String icon;
 
+    @Version
+    private Long version;
+
     /**
      * Logical delete flag: NULL for active records, timestamp (milliseconds) for deleted records.
      */
